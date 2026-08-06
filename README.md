@@ -79,7 +79,34 @@ MOCK_TRANSLATION=1 python3 -m unittest discover -s tests -v
 
 ## 공개 배포
 
-이 앱은 DeepL 키가 필요한 Flask 백엔드 앱이므로 **GitHub Pages 단독 배포가 아니라 GitHub 저장소를 Render Web Service에 연결하는 방식**으로 배포한다.
+이 앱은 DeepL 키가 필요한 Flask 백엔드 앱이므로 GitHub Pages 단독 배포가 아니라 **Vercel Python Function 또는 Render Web Service**로 배포한다. 현재 기본 대상은 Vercel이다.
+
+### Vercel 배포
+
+저장소 루트의 `vercel.json`과 `api/index.py`가 Flask 앱을 Vercel Python Function으로 연결한다.
+
+```bash
+npm install -g vercel
+vercel login
+cd "/mnt/c/Users/user/Desktop/GPT 작업/20260806_093816_NZ교류신문_OpenAI_배포앱"
+vercel link
+vercel --prod
+```
+
+Vercel Project Settings → Environment Variables에 다음을 등록한다.
+
+```text
+DEEPL_API_KEY=<실제 DeepL 키>
+DEEPL_API_BASE_URL=https://api-free.deepl.com
+ALLOWED_ORIGINS=
+```
+
+실제 키는 채팅·GitHub·브라우저 코드에 넣지 말고 Vercel 환경변수에 직접 입력한다. 배포 후 다음을 확인한다.
+
+```text
+https://<프로젝트>.vercel.app/
+https://<프로젝트>.vercel.app/api/health
+```
 
 ### GitHub 저장소 준비
 

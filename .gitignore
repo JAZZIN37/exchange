@@ -5,4 +5,5 @@ __pycache__/
 *.py[cod]
 .venv/
 .pytest_cache/
+.vercel/
 .DS_Store
