@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#111827">
+  <link rel="manifest" href="manifest.json">
+  <title>안성초등학교 국제교류 신문</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <style>
+    :root{--ink:#17202b;--muted:#64748b;--paper:#fffdf7;--line:#17202b;--accent:#2563eb;--soft:#eef2f7}
+    *{box-sizing:border-box}body{margin:0;background:#e2e8f0;color:var(--ink);font-family:system-ui,-apple-system,"Malgun Gothic",sans-serif}
+    button,input,textarea{font:inherit}.app{max-width:1240px;margin:auto;padding:24px}.topbar{display:flex;justify-content:space-between;gap:16px;align-items:center;margin-bottom:18px}.brand{font-weight:900;letter-spacing:-.04em}.health{font-size:12px;color:var(--muted)}
+    .layout{display:grid;grid-template-columns:320px minmax(0,1fr);gap:20px}.panel,.paper{border:1px solid #cbd5e1;border-radius:18px;background:#fff;box-shadow:0 14px 35px #0f172a14}.panel{padding:18px;height:max-content}.panel h2{margin:0 0 14px;font-size:18px}.field{margin:0 0 14px}.field label{display:block;margin-bottom:6px;font-size:13px;font-weight:800;color:#475569}.field input,.field textarea{width:100%;border:1px solid #cbd5e1;border-radius:10px;padding:11px;background:#f8fafc}.field textarea{min-height:160px;resize:vertical}.btn{width:100%;margin-top:9px;padding:12px 14px;border:0;border-radius:12px;background:#111827;color:white;font-weight:800;cursor:pointer}.btn.secondary{background:#e2e8f0;color:#17202b}.btn:disabled{opacity:.55;cursor:wait}.hint{margin:12px 0 0;font-size:12px;line-height:1.6;color:#64748b}.status{margin-top:12px;padding:10px;border-radius:10px;background:#f1f5f9;font-size:13px;line-height:1.5}.status.error{background:#fee2e2;color:#991b1b}.status.ok{background:#dcfce7;color:#166534}
+    .paper-wrap{padding:16px}.paper{max-width:850px;min-height:980px;margin:auto;padding:54px;background:var(--paper);border-radius:4px;box-shadow:0 20px 40px #0f172a1a}.paper-header{text-align:center;border-bottom:5px solid var(--line);padding-bottom:16px}.kicker{font-size:12px;letter-spacing:.15em;font-weight:900}.masthead{margin:8px 0 0;font-family:Georgia,"Batang",serif;font-size:34px;line-height:1.22;letter-spacing:-.04em}.meta{display:flex;justify-content:space-between;gap:12px;border-bottom:2px solid var(--line);padding:11px 2px;margin-bottom:38px;font-size:13px;font-weight:800}.title{min-height:70px;margin-bottom:18px;text-align:center;font-family:Georgia,"Batang",serif;font-size:42px;font-weight:900;line-height:1.25;outline:0}.title:empty:before,.body:empty:before{content:attr(data-placeholder);color:#94a3b8;font-family:system-ui,sans-serif;font-size:18px;font-weight:500}.translation{white-space:pre-wrap;margin:-4px 0 28px;padding:0 6px 14px;border-bottom:1px solid #cbd5e1;color:#475569;font-style:italic;line-height:1.6}.photo{min-height:245px;margin-bottom:34px;border:1px dashed #94a3b8;background:#f1f5f9;display:grid;place-items:center;overflow:hidden}.photo img{display:block;width:100%;max-height:500px;object-fit:cover}.photo .empty{text-align:center;color:#64748b}.body{min-height:150px;white-space:pre-wrap;font-size:18px;line-height:1.9;text-align:justify;outline:0}.footer{display:flex;justify-content:space-between;border-top:2px solid var(--line);margin-top:60px;padding-top:18px;font-size:11px;font-weight:800;letter-spacing:.08em}.actions{display:flex;gap:10px;margin-top:16px}.actions .btn{width:auto;flex:1}
+    @media(max-width:850px){.app{padding:12px}.layout{grid-template-columns:1fr}.paper{padding:28px 20px;min-height:auto}.masthead{font-size:25px}.title{font-size:31px}.body{font-size:16px}.topbar{align-items:flex-start;flex-direction:column}}
+    @media print{body{background:white}.app{padding:0}.topbar,.panel,.actions{display:none!important}.layout{display:block}.paper{box-shadow:none;border:0;max-width:none}}
+  </style>
+</head>
+<body>
+  <main class="app">
+    <header class="topbar"><div><div class="brand">NZ 국제교류 신문 제작기</div><div class="health" id="health">DeepL 연결 상태 확인 중…</div></div><div class="health">안성초등학교 · 바이테렉 과학기술학교</div></header>
+    <section class="layout">
+      <aside class="panel">
+        <h2>기사 입력</h2>
+        <div class="field"><label for="titleInput">기사 제목</label><input id="titleInput" placeholder="예: 함께 만든 국제교류 신문"></div>
+        <div class="field"><label for="bodyInput">기사 본문</label><textarea id="bodyInput" placeholder="기사 내용을 입력해줘."></textarea></div>
+        <div class="field"><label for="imageInput">교류 활동 사진</label><input id="imageInput" type="file" accept="image/*"></div>
+        <button class="btn" id="translateBtn">DeepL로 자동번역</button>
+        <button class="btn secondary" id="prepareBtn">게시판 자동입력 준비</button>
+        <button class="btn secondary" id="saveBtn">신문 PNG 저장</button>
+        <div class="status" id="status">DeepL 키는 서버에만 저장되며 이 페이지로 내려오지 않아.</div>
+        <p class="hint">게시판 자동입력은 Chrome/Edge 확장 프로그램을 설치한 뒤 사용할 수 있어. 로그인·최종 등록 버튼은 직접 확인해야 해.</p>
+      </aside>
+      <section class="paper-wrap">
+        <article class="paper" id="newspaper">
+          <header class="paper-header"><div class="kicker">INTERNATIONAL CULTURAL EXCHANGE</div><h1 class="masthead">안성초등학교 · 바이테렉 과학기술학교<br>Exchange News</h1></header>
+          <div class="meta"><span id="today"></span><span>Friendship Through Education</span></div>
+          <div class="title" id="previewTitle" contenteditable="true" data-placeholder="제목을 입력해줘"></div>
+          <div class="translation" id="previewTitleTranslation" hidden></div>
+          <div class="photo" id="photoBox"><div class="empty" id="photoEmpty">📸<br>사진을 선택해줘</div><img id="previewImage" alt="교류 활동 사진" hidden></div>
+          <div class="body" id="previewBody" contenteditable="true" data-placeholder="기사 본문을 입력해줘"></div>
+          <div class="translation" id="previewBodyTranslation" hidden></div>
+          <footer class="footer"><span>PARTNERSHIP FOR GLOBAL CITIZENS</span><span>PAGE 01 · 2026</span></footer>
+        </article>
+      </section>
+    </section>
+  </main>
+<script>
+  const $ = id => document.getElementById(id);
+  const BOARD_URL = 'https://anseong-e.goean.kr/anseong-e/na/ntt/insertNttPage.do?bbsId=3782&mi=6400';
+  const API_BASE = window.NZ_API_BASE || '';
+  const PAYLOAD_KEY = 'nz-exchange-news-payload-v1';
+  let imageDataUrl = '';
+  let imageName = 'exchange-news.png';
+
+  $('today').textContent = new Date().toLocaleDateString('ko-KR', {year:'numeric', month:'2-digit', day:'2-digit'});
+  function status(message, kind='') { $('status').textContent = message; $('status').className = `status ${kind}`; }
+  function syncInputToPreview() { $('previewTitle').textContent = $('titleInput').value; $('previewBody').textContent = $('bodyInput').value; }
+  $('titleInput').addEventListener('input', syncInputToPreview);
+  $('bodyInput').addEventListener('input', syncInputToPreview);
+  $('previewTitle').addEventListener('input', () => $('titleInput').value = $('previewTitle').innerText);
+  $('previewBody').addEventListener('input', () => $('bodyInput').value = $('previewBody').innerText);
+
+  $('imageInput').addEventListener('change', event => {
+    const file = event.target.files?.[0]; if (!file) return;
+    imageName = file.name || imageName;
+    const reader = new FileReader();
+    reader.onload = () => { imageDataUrl = String(reader.result); $('previewImage').src = imageDataUrl; $('previewImage').hidden = false; $('photoEmpty').hidden = true; };
+    reader.readAsDataURL(file);
+  });
+
+  async function api(path, options = {}) {
+    const response = await fetch(`${API_BASE}${path}`, {headers:{'Content-Type':'application/json'}, ...options});
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok || !data.ok) throw new Error(data.error || `API 오류 (${response.status})`);
+    return data;
+  }
+  async function checkHealth() {
+    try { const data = await api('/api/health'); $('health').textContent = data.deepl_configured ? `DeepL 준비됨 · ${data.api_base.includes('free') ? 'Free' : 'Pro'}` : 'DeepL 키가 서버에 설정되지 않음'; }
+    catch (error) { $('health').textContent = 'API 서버에 연결되지 않음'; }
+  }
+  function showTranslations(target, result) {
+    const parts = Object.entries(result.translations || {}).map(([key, value]) => `[${key.toUpperCase()}]\n${value}`);
+    target.textContent = parts.join('\n\n'); target.hidden = !parts.length;
+  }
+  $('translateBtn').addEventListener('click', async () => {
+    const title = $('titleInput').value.trim(), body = $('bodyInput').value.trim();
+    if (!title && !body) return status('제목이나 본문을 먼저 입력해줘.', 'error');
+    $('translateBtn').disabled = true; status('DeepL이 번역 중이야…');
+    try {
+      const [titleResult, bodyResult] = await Promise.all([title ? api('/api/translate', {method:'POST', body:JSON.stringify({text:title})}) : null, body ? api('/api/translate', {method:'POST', body:JSON.stringify({text:body})}) : null]);
+      if (titleResult) showTranslations($('previewTitleTranslation'), titleResult);
+      if (bodyResult) showTranslations($('previewBodyTranslation'), bodyResult);
+      status('번역이 완료됐어.', 'ok');
+    } catch (error) { status(error.message, 'error'); }
+    finally { $('translateBtn').disabled = false; }
+  });
+  function getPayload() {
+    return {title:$('titleInput').value.trim() || '국제교류 소식', body:$('bodyInput').value.trim(), translatedTitle:$('previewTitleTranslation').hidden ? '' : $('previewTitleTranslation').innerText.trim(), translatedBody:$('previewBodyTranslation').hidden ? '' : $('previewBodyTranslation').innerText.trim(), imageDataUrl, imageName, savedAt:new Date().toISOString()};
+  }
+  $('prepareBtn').addEventListener('click', () => {
+    const payload = getPayload();
+    if (!payload.body && !payload.imageDataUrl) return status('본문이나 사진을 먼저 준비해줘.', 'error');
+    localStorage.setItem(PAYLOAD_KEY, JSON.stringify(payload));
+    document.dispatchEvent(new CustomEvent('NZ_EXCHANGE_NEWS_PAYLOAD_READY', {detail:JSON.stringify(payload)}));
+    window.open(`${BOARD_URL}&nzAutoFill=1`, '_blank', 'noopener');
+    status('게시판을 열었어. 로그인 후 확장 프로그램의 자동입력 버튼을 눌러줘.', 'ok');
+  });
+  $('saveBtn').addEventListener('click', async () => {
+    try {
+      if (!window.html2canvas) return window.print();
+      const canvas = await html2canvas($('newspaper'), {scale:2, backgroundColor:'#fffdf7', useCORS:true});
+      const link = document.createElement('a'); link.download = `${($('titleInput').value.trim() || 'exchange-news').replace(/[\\/:*?"<>|]/g,'_')}.png`; link.href = canvas.toDataURL('image/png'); link.click(); status('신문 PNG를 저장했어.', 'ok');
+    } catch (error) { status(`PNG 저장 실패: ${error.message}`, 'error'); }
+  });
+  checkHealth();
+</script>
+</body>
+</html>

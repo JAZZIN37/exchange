@@ -1,0 +1,51 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+
+      - name: Run backend tests in mock mode
+        env:
+          MOCK_TRANSLATION: "1"
+        run: python -m unittest discover -s tests -v
+
+      - name: Compile Python
+        run: python -m compileall -q app.py tests
+
+      - name: Check extension JavaScript syntax
+        run: node --check board-autofill-extension/content.js
+
+      - name: Check JSON manifests
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          for path in [Path("static/manifest.json"), Path("board-autofill-extension/manifest.json")]:
+              json.loads(path.read_text(encoding="utf-8"))
+              print(f"valid JSON: {path}")
+          PY
+
+      - name: Ensure secrets are not in tracked source
+        run: |
+          ! grep -RInE 'DEEPL_API_KEY[[:space:]]*=[[:space:]]*[A-Za-z0-9_-]{20,}(:fx)?|DeepL-Auth-Key[[:space:]]+[A-Za-z0-9_-]{20,}' \
+            --exclude-dir=.git --exclude-dir=.venv .

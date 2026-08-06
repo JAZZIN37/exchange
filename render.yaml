@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: nz-exchange-news-deepl
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app --bind 0.0.0.0:$PORT
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      - key: DEEPL_API_KEY
+        sync: false
+      - key: DEEPL_API_BASE_URL
+        value: https://api-free.deepl.com
+      - key: RATE_LIMIT_PER_MINUTE
+        value: "20"
+      - key: MAX_TRANSLATE_CHARS
+        value: "8000"
+      - key: ALLOWED_ORIGINS
+        sync: false

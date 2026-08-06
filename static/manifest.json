@@ -1,0 +1,10 @@
+{
+  "name": "NZ 국제교류 신문 제작기",
+  "short_name": "NZ신문",
+  "description": "안성초등학교 국제교류 신문을 만들고 번역·게시판 입력을 준비하는 웹앱",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#e2e8f0",
+  "theme_color": "#111827",
+  "icons": []
+}
