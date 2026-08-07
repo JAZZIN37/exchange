@@ -183,9 +183,25 @@
     }
   });
 
+  function escapeHtml(value) {
+    return String(value || '').replace(/[&<>"']/g, character => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[character]));
+  }
+
+  function textToHtml(value) {
+    return escapeHtml(value).replace(/\r?\n/g, '<br>');
+  }
+
+  function buildArticleHtml(data) {
+    const title = escapeHtml(data.title || '국제교육');
+    const body = textToHtml(data.body);
+    const translations = data.translatedBody ? `<div style="margin-top:24px;padding-top:12px;border-top:1px solid #ccc;color:#475569;font-style:italic;white-space:pre-wrap">${textToHtml(data.translatedBody)}</div>` : '';
+    const image = data.imageDataUrl ? `<p><img src="${data.imageDataUrl}" alt="교류 활동 사진" style="max-width:100%;height:auto"></p>` : '';
+    return `<article><h1>${title}</h1><p>${body}</p>${translations}${image}</article>`;
+  }
+
   function getPayload() {
-    return {
-      title: textOf($('previewTitle')) || '국제교육신문',
+    const payload = {
+      title: textOf($('previewTitle')) || '국제교육',
       body: textOf($('previewBody')),
       translatedTitle: collectTranslations('title'),
       translatedBody: collectTranslations('body'),
@@ -193,6 +209,8 @@
       imageName,
       savedAt: new Date().toISOString()
     };
+    payload.articleHtml = buildArticleHtml(payload);
+    return payload;
   }
 
   $('prepareBtn').addEventListener('click', () => {

@@ -21,6 +21,7 @@
       body: normalize(payload.body),
       translatedTitle: normalize(payload.translatedTitle),
       translatedBody: normalize(payload.translatedBody),
+      articleHtml: typeof payload.articleHtml === 'string' ? payload.articleHtml : '',
       imageDataUrl: typeof payload.imageDataUrl === 'string' ? payload.imageDataUrl : '',
       imageName: normalize(payload.imageName) || 'exchange-news.png',
       savedAt: payload.savedAt || ''
@@ -119,7 +120,7 @@
     setNativeValue(titleField, payload.title);
     const translated = payload.translatedBody ? `\n\n${payload.translatedBody}` : '';
     const body = `${payload.body}${translated}`.trim();
-    if (bodyField.isContentEditable) bodyField.textContent = body;
+    if (bodyField.isContentEditable) bodyField.innerHTML = payload.articleHtml || body;
     else setNativeValue(bodyField, body);
     bodyField.dispatchEvent(new Event('input', { bubbles: true }));
     const uploaded = await setFileInput(payload);
