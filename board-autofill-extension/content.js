@@ -117,7 +117,7 @@
       return;
     }
     setNativeValue(titleField, payload.title);
-    const translated = payload.translatedBody ? `\n\n[번역]\n${payload.translatedBody}` : '';
+    const translated = payload.translatedBody ? `\n\n${payload.translatedBody}` : '';
     const body = `${payload.body}${translated}`.trim();
     if (bodyField.isContentEditable) bodyField.textContent = body;
     else setNativeValue(bodyField, body);
