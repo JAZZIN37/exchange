@@ -5,12 +5,12 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#111827">
   <link rel="manifest" href="manifest.json">
-  <title>안성초등학교-바이테렉 과학기술학교 국제교육</title>
+  <title>안성초등학교-바이테렉 과학기술학교 국제교류</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <style>
     :root{--ink:#17202b;--muted:#64748b;--paper:#fffdf7;--line:#17202b;--blue:#2563eb;--soft:#eef2f7;--editable:#fff8d8}
     *{box-sizing:border-box}
-    body{margin:0;background:#e2e8f0;color:var(--ink);font-family:system-ui,-apple-system,"Malgun Gothic",sans-serif}
+    body{margin:0;background:#e2e8f0;color:var(--ink);font-family:"Malgun Gothic","맑은 고딕",Arial,sans-serif}
     button{font:inherit}
     .app{max-width:1120px;margin:auto;padding:22px 18px 36px}
     .topbar{display:flex;justify-content:center;align-items:center;margin-bottom:16px}
@@ -18,13 +18,13 @@
     .paper-wrap{padding:10px}
     .paper{max-width:900px;min-height:1060px;margin:auto;padding:46px 58px 42px;background:var(--paper);border:1px solid #cbd5e1;border-radius:4px;box-shadow:0 20px 40px #0f172a1a}
     .paper-header{text-align:center;border-bottom:5px solid var(--line);padding-bottom:19px}
-    .masthead{margin:0;font-family:Georgia,"Batang",serif;font-size:34px;line-height:1.25;letter-spacing:-.045em}
+    .masthead{margin:0;font-family:inherit;font-size:34px;line-height:1.25;letter-spacing:-.045em}
     .subtitle{margin-top:11px;font-size:18px;font-weight:800;line-height:1.45;letter-spacing:-.025em}
     .meta{display:flex;justify-content:space-between;gap:14px;border-bottom:2px solid var(--line);padding:11px 2px;margin-bottom:34px;font-size:13px;font-weight:800}
     .editable{outline:2px solid transparent;border-radius:5px;transition:background .15s,outline-color .15s}
     .editable:hover,.editable:focus{background:var(--editable);outline-color:#facc15}
-    .editable:empty:before{content:attr(data-placeholder);color:#94a3b8;font-family:system-ui,sans-serif;font-size:18px;font-weight:500}
-    .title{min-height:76px;margin-bottom:14px;text-align:center;font-family:Georgia,"Batang",serif;font-size:43px;font-weight:900;line-height:1.25;letter-spacing:-.045em}
+    .editable:empty:before{content:attr(data-placeholder);color:#94a3b8;font-family:inherit;font-size:18px;font-weight:500}
+    .title{min-height:76px;margin-bottom:14px;text-align:center;font-family:inherit;font-size:43px;font-weight:900;line-height:1.25;letter-spacing:-.045em}
     .translation-stack{display:flex;flex-direction:column;gap:8px;margin:-2px 0 27px}
     .translation-line{min-height:28px;padding:5px 7px;border-bottom:1px solid #cbd5e1;color:#475569;font-style:italic;line-height:1.55;white-space:pre-wrap}
     .translation-line:empty:before{content:attr(data-placeholder);color:#94a3b8;font-style:normal}
@@ -51,13 +51,13 @@
     <section class="paper-wrap">
       <article class="paper" id="newspaper">
         <header class="paper-header">
-          <h1 class="masthead">안성초등학교-바이테렉 과학기술학교 국제교육</h1>
+          <h1 class="masthead">안성초등학교-바이테렉 과학기술학교 국제교류</h1>
           <div class="subtitle">Бәйтерек ғылым және технология мектебі - Начальная школа Ансон</div>
         </header>
 
         <div class="meta"><span id="today"></span><span>Friendship Through Education</span></div>
 
-        <div class="title editable" id="previewTitle" contenteditable="true" role="textbox" aria-label="기사 제목" data-placeholder="제목을 입력해줘"></div>
+        <div class="title editable" id="previewTitle" contenteditable="true" role="textbox" aria-label="기사 제목 / Заголовок статьи" data-placeholder="제목을 입력해 주십시오. / Введите заголовок, пожалуйста."></div>
         <div class="translation-stack" id="titleTranslations" aria-label="제목 번역">
           <div class="translation-line editable" id="titleTranslationKo" contenteditable="true" role="textbox" aria-label="제목 한국어 번역" hidden></div>
           <div class="translation-line editable" id="titleTranslationEn" contenteditable="true" role="textbox" aria-label="제목 영어 번역" hidden></div>
@@ -65,12 +65,12 @@
         </div>
 
         <label class="photo" id="photoBox" for="imageInput" tabindex="0" aria-label="교류 활동 사진 선택">
-          <div class="empty" id="photoEmpty">📸<br>사진을 선택해줘</div>
+          <div class="empty" id="photoEmpty">📸<br>사진을 선택해 주십시오.<br>Выберите фотографию, пожалуйста.</div>
           <img id="previewImage" alt="교류 활동 사진" hidden>
           <input class="image-input" id="imageInput" type="file" accept="image/*">
         </label>
 
-        <div class="body editable" id="previewBody" contenteditable="true" role="textbox" aria-label="기사 본문" data-placeholder="기사 본문을 입력해줘"></div>
+        <div class="body editable" id="previewBody" contenteditable="true" role="textbox" aria-label="기사 본문 / Текст статьи" data-placeholder="기사 본문을 입력해 주십시오. / Введите текст статьи, пожалуйста."></div>
         <div class="translation-stack" id="bodyTranslations" aria-label="본문 번역">
           <div class="translation-line editable" id="bodyTranslationKo" contenteditable="true" role="textbox" aria-label="본문 한국어 번역" hidden></div>
           <div class="translation-line editable" id="bodyTranslationEn" contenteditable="true" role="textbox" aria-label="본문 영어 번역" hidden></div>
@@ -192,7 +192,7 @@
   }
 
   function buildArticleHtml(data) {
-    const title = escapeHtml(data.title || '국제교육');
+    const title = escapeHtml(data.title || '국제교류');
     const body = textToHtml(data.body);
     const translations = data.translatedBody ? `<div style="margin-top:24px;padding-top:12px;border-top:1px solid #ccc;color:#475569;font-style:italic;white-space:pre-wrap">${textToHtml(data.translatedBody)}</div>` : '';
     const image = data.imageDataUrl ? `<p><img src="${data.imageDataUrl}" alt="교류 활동 사진" style="max-width:100%;height:auto"></p>` : '';
@@ -201,7 +201,7 @@
 
   function getPayload() {
     const payload = {
-      title: textOf($('previewTitle')) || '국제교육',
+      title: textOf($('previewTitle')) || '국제교류',
       body: textOf($('previewBody')),
       translatedTitle: collectTranslations('title'),
       translatedBody: collectTranslations('body'),
