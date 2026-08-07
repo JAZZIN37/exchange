@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#111827">
   <link rel="manifest" href="manifest.json">
-  <title>국제교육신문 만들기</title>
+  <title>안성초등학교-바이테렉 과학기술학교 국제교육</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <style>
     :root{--ink:#17202b;--muted:#64748b;--paper:#fffdf7;--line:#17202b;--blue:#2563eb;--soft:#eef2f7;--editable:#fff8d8}
@@ -18,10 +18,8 @@
     .paper-wrap{padding:10px}
     .paper{max-width:900px;min-height:1060px;margin:auto;padding:46px 58px 42px;background:var(--paper);border:1px solid #cbd5e1;border-radius:4px;box-shadow:0 20px 40px #0f172a1a}
     .paper-header{text-align:center;border-bottom:5px solid var(--line);padding-bottom:19px}
-    .kicker{font-size:12px;letter-spacing:.16em;font-weight:900;color:#475569}
-    .masthead{margin:10px 0 0;font-family:Georgia,"Batang",serif;font-size:38px;line-height:1.18;letter-spacing:-.055em}
-    .partner-schools{display:flex;flex-direction:column;gap:7px;margin-top:16px;font-size:17px;font-weight:800;line-height:1.45;letter-spacing:-.025em}
-    .school-line{display:block}
+    .masthead{margin:0;font-family:Georgia,"Batang",serif;font-size:34px;line-height:1.25;letter-spacing:-.045em}
+    .subtitle{margin-top:11px;font-size:18px;font-weight:800;line-height:1.45;letter-spacing:-.025em}
     .meta{display:flex;justify-content:space-between;gap:14px;border-bottom:2px solid var(--line);padding:11px 2px;margin-bottom:34px;font-size:13px;font-weight:800}
     .editable{outline:2px solid transparent;border-radius:5px;transition:background .15s,outline-color .15s}
     .editable:hover,.editable:focus{background:var(--editable);outline-color:#facc15}
@@ -50,17 +48,11 @@
 </head>
 <body>
   <main class="app">
-    <header class="topbar"><div class="brand">국제교육신문 만들기</div></header>
-
     <section class="paper-wrap">
       <article class="paper" id="newspaper">
         <header class="paper-header">
-          <div class="kicker">INTERNATIONAL EDUCATION NEWSPAPER</div>
-          <h1 class="masthead">국제교육신문</h1>
-          <div class="partner-schools" aria-label="협력 학교 이름">
-            <div class="school-line">안성초등학교-바이테렉 과학기술학교</div>
-            <div class="school-line">Бәйтерек ғылым және технология мектебі - Начальная школа Ансон</div>
-          </div>
+          <h1 class="masthead">안성초등학교-바이테렉 과학기술학교 국제교육</h1>
+          <div class="subtitle">Бәйтерек ғылым және технология мектебі - Начальная школа Ансон</div>
         </header>
 
         <div class="meta"><span id="today"></span><span>Friendship Through Education</span></div>
@@ -101,7 +93,7 @@
 
 <script>
   const $ = id => document.getElementById(id);
-  const BOARD_URL = 'https://anseong-e.goean.kr/anseong-e/na/ntt/insertNttPage.do?bbsId=3782&mi=6400';
+  const BOARD_URL = 'https://anseong-e.goean.kr/anseong-e/na/ntt/insertNttPage.do?mi=6401&bbsId=3783';
   const API_BASE = window.NZ_API_BASE || '';
   const PAYLOAD_KEY = 'nz-exchange-news-payload-v1';
   const LANGUAGES = ['ko', 'en', 'ru'];
@@ -209,7 +201,7 @@
     localStorage.setItem(PAYLOAD_KEY, JSON.stringify(payload));
     document.dispatchEvent(new CustomEvent('NZ_EXCHANGE_NEWS_PAYLOAD_READY', {detail:JSON.stringify(payload)}));
     window.open(`${BOARD_URL}&nzAutoFill=1`, '_blank', 'noopener');
-    status('게시판을 열었어. 로그인 후 확장 프로그램의 자동입력 버튼을 눌러줘.', 'ok');
+    status('게시판 글쓰기 화면을 열었어. 로그인 후 제목·본문·이미지를 확인하고 게시판의 최종 등록 버튼을 눌러줘.', 'ok');
   });
 
   $('saveBtn').addEventListener('click', async () => {
