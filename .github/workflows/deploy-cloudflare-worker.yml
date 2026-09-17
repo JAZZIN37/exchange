@@ -95,7 +95,7 @@ jobs:
           request = Request(
               os.environ["WORKER_ORIGIN"] + "/api/publish",
               data=json.dumps(payload, ensure_ascii=False).encode("utf-8"),
-              headers={"Content-Type": "application/json", "Origin": "https://jazzin37.github.io"},
+              headers={"Content-Type": "application/json", "Origin": "https://jazzin37.github.io", "User-Agent": "Mozilla/5.0"},
               method="POST",
           )
           try:
