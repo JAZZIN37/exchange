@@ -17,5 +17,4 @@ jobs:
           SCHOOL_BOARD_USERNAME: ${{ secrets.SCHOOL_BOARD_USERNAME }}
           SCHOOL_BOARD_PASSWORD: ${{ secrets.SCHOOL_BOARD_PASSWORD }}
         run: |
-          node scripts/diagnose-publish.mjs
-          python scripts/diagnose-school.py
+          python scripts/inspect-board-images.py
