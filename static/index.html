@@ -42,6 +42,7 @@
     .actions{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
     .btn{padding:14px 12px;border:0;border-radius:12px;background:#111827;color:#fff;font-weight:900;cursor:pointer;box-shadow:0 5px 12px #0f172a22}
     .btn:hover{background:#263244}.btn:disabled{opacity:.55;cursor:wait}
+    .modal{position:fixed;inset:0;z-index:20;display:none;align-items:center;justify-content:center;padding:18px;background:#0f172aaa}.modal.open{display:flex}.modal-card{width:min(100%,460px);padding:24px;border-radius:16px;background:#fff;box-shadow:0 20px 50px #0005}.modal-card h2{margin:0 0 10px;font-size:21px}.modal-card p{color:#475569;line-height:1.6}.modal-card input{width:100%;margin:10px 0;padding:12px;border:1px solid #94a3b8;border-radius:8px;font:inherit}.modal-actions{display:flex;gap:8px;margin-top:16px}.modal-actions .btn{flex:1}
     @media(max-width:850px){.app{padding:14px 9px 28px}.paper-wrap{padding:4px}.paper{padding:32px 22px 30px;min-height:auto}.masthead{font-size:29px}.partner-schools{font-size:15px;gap:7px}.title{font-size:33px;min-height:62px}.body{font-size:16px;line-height:1.8}.meta{font-size:11px}.actions{grid-template-columns:1fr}.footer{font-size:9px;letter-spacing:.04em}}
     @media print{body{background:#fff}.app{padding:0}.topbar,.action-area{display:none!important}.paper-wrap{padding:0}.paper{box-shadow:none;border:0;max-width:none}}
   </style>
@@ -90,6 +91,16 @@
       </div>
     </section>
   </main>
+
+  <section id="publishModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="publishTitle">
+    <div class="modal-card">
+      <h2 id="publishTitle">국제교류 게시판에 게시</h2>
+      <p>게시 내용을 확인한 뒤 참여자 접근코드를 입력해 주세요. 게시 계정 비밀번호는 이 화면에 입력하거나 저장하지 않습니다.</p>
+      <input id="publishAccessCode" type="password" autocomplete="one-time-code" placeholder="참여자 접근코드">
+      <label><input id="publishConfirmed" type="checkbox"> 제목·본문을 확인했고 국제교류 게시판에 즉시 게시하는 것에 동의합니다.</label>
+      <div class="modal-actions"><button class="btn" id="cancelPublishBtn" type="button">취소</button><button class="btn" id="confirmPublishBtn" type="button">확인 후 즉시 게시</button></div>
+    </div>
+  </section>
 
 <script src="runtime-config.js"></script>
 <script>
@@ -214,13 +225,26 @@
     return payload;
   }
 
+  function closePublishModal() { $('publishModal').classList.remove('open'); $('publishAccessCode').value=''; $('publishConfirmed').checked=false; }
   $('prepareBtn').addEventListener('click', () => {
     const payload = getPayload();
-    if (!payload.body && !payload.imageDataUrl) return status('본문이나 사진을 먼저 준비해줘.', 'error');
-    localStorage.setItem(PAYLOAD_KEY, JSON.stringify(payload));
-    document.dispatchEvent(new CustomEvent('NZ_EXCHANGE_NEWS_PAYLOAD_READY', {detail:JSON.stringify(payload)}));
-    window.open(`${BOARD_URL}&nzAutoFill=1`, '_blank', 'noopener');
-    status('게시판 글쓰기 화면을 열었어. 로그인 후 제목·본문·이미지를 확인하고 게시판의 최종 등록 버튼을 눌러줘.', 'ok');
+    if (!payload.body) return status('게시할 본문을 먼저 입력해줘.', 'error');
+    $('publishModal').classList.add('open');
+    $('publishAccessCode').focus();
+  });
+  $('cancelPublishBtn').addEventListener('click', closePublishModal);
+  $('confirmPublishBtn').addEventListener('click', async () => {
+    const payload = getPayload();
+    const accessCode = $('publishAccessCode').value;
+    if (!accessCode) return status('참여자 접근코드를 입력해줘.', 'error');
+    if (!$('publishConfirmed').checked) return status('게시 내용 확인에 동의해줘.', 'error');
+    $('confirmPublishBtn').disabled = true;
+    try {
+      const result = await api('/api/publish', {method:'POST', body:JSON.stringify({accessCode, title:payload.title, body:payload.body, translatedBody:payload.translatedBody, confirmed:true})});
+      closePublishModal();
+      status(`국제교류 게시판에 게시했어. 게시번호: ${result.boardPostId || '확인 중'}`, 'ok');
+    } catch (error) { status(error.message, 'error'); }
+    finally { $('confirmPublishBtn').disabled = false; }
   });
 
   $('saveBtn').addEventListener('click', async () => {

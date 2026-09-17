@@ -29,16 +29,19 @@ jobs:
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
       DEEPL_API_KEY: ${{ secrets.DEEPL_API_KEY }}
+      SCHOOL_BOARD_USERNAME: ${{ secrets.SCHOOL_BOARD_USERNAME }}
+      SCHOOL_BOARD_PASSWORD: ${{ secrets.SCHOOL_BOARD_PASSWORD }}
+      SUBMISSION_ACCESS_CODE: ${{ secrets.SUBMISSION_ACCESS_CODE }}
     steps:
       - name: Check Worker deployment configuration
         id: worker
         shell: bash
         run: |
-          if [ -n "$CLOUDFLARE_API_TOKEN" ] && [ -n "$CLOUDFLARE_ACCOUNT_ID" ] && [ -n "$DEEPL_API_KEY" ]; then
+          if [ -n "$CLOUDFLARE_API_TOKEN" ] && [ -n "$CLOUDFLARE_ACCOUNT_ID" ] && [ -n "$DEEPL_API_KEY" ] && [ -n "$SCHOOL_BOARD_USERNAME" ] && [ -n "$SCHOOL_BOARD_PASSWORD" ] && [ -n "$SUBMISSION_ACCESS_CODE" ]; then
             echo "configured=true" >> "$GITHUB_OUTPUT"
           else
             echo "configured=false" >> "$GITHUB_OUTPUT"
-            echo "Cloudflare or DeepL secrets are not configured; Worker deployment is skipped."
+            echo "Cloudflare, DeepL, or school publisher secrets are not configured; Worker deployment is skipped."
           fi
 
       - name: Check out source
@@ -55,3 +58,6 @@ jobs:
           command: deploy
           secrets: |
             DEEPL_API_KEY
+            SCHOOL_BOARD_USERNAME
+            SCHOOL_BOARD_PASSWORD
+            SUBMISSION_ACCESS_CODE
