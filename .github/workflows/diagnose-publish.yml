@@ -1,0 +1,19 @@
+name: Diagnose school login without posting
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Read-only login and write-form probe
+        env:
+          SCHOOL_BOARD_USERNAME: ${{ secrets.SCHOOL_BOARD_USERNAME }}
+          SCHOOL_BOARD_PASSWORD: ${{ secrets.SCHOOL_BOARD_PASSWORD }}
+        run: node scripts/diagnose-publish.mjs
