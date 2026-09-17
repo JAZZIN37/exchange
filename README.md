@@ -77,10 +77,10 @@ MOCK_TRANSLATION=1 python3 -m unittest discover -s tests -v
 
 앱은 한국어·영어·러시아어를 자동 감지하고, 입력 언어를 제외한 두 언어로 번역한다. 영어 결과는 `EN-US`로 요청한다.
 
-게시판 자동 등록은 안성초등학교 **국제교류(TEST)** 게시판의 글쓰기 화면을 여는 방식으로 동작한다. 게시판은 로그인과 최종 등록 확인이 필요하므로 비밀번호를 앱에 저장하거나 자동 입력·자동 제출하지 않는다. 사용자가 로그인한 뒤 Chrome/Edge 확장 프로그램이 제목·본문·이미지를 입력하고, 사용자가 내용을 확인해 게시판의 등록 버튼을 누른다.
+게시판 등록은 안성초등학교 **국제교류** 게시판의 글쓰기 화면을 여는 방식으로 동작한다. 게시판은 로그인과 최종 등록 확인이 필요하므로 비밀번호를 앱에 저장하거나 자동 입력·자동 제출하지 않는다. 사용자가 로그인한 뒤 Chrome/Edge 확장 프로그램이 제목·본문·이미지를 입력하고, 사용자가 내용을 확인해 게시판의 등록 버튼을 누른다.
 
-- 게시판 목록: `https://anseong-e.goean.kr/anseong-e/na/ntt/selectNttList.do?mi=6401&bbsId=3783`
-- 게시판 글쓰기: `https://anseong-e.goean.kr/anseong-e/na/ntt/insertNttPage.do?mi=6401&bbsId=3783`
+- 게시판 목록: `https://anseong-e.goean.kr/anseong-e/na/ntt/selectNttList.do?mi=6436&bbsId=3783`
+- 게시판 글쓰기: `https://anseong-e.goean.kr/anseong-e/na/ntt/insertNttPage.do?mi=6436&bbsId=3783`
 
 
 이 앱은 DeepL 키가 필요한 Flask 백엔드 앱이므로 GitHub Pages 단독 배포가 아니라 **Vercel Python Function 또는 Render Web Service**로 배포한다. 현재 기본 대상은 Vercel이다.
@@ -148,10 +148,10 @@ git push -u origin main
 
 ## 게시판 자동입력
 
-현재 안성초등학교 글쓰기 URL은 다음과 같다.
+현재 안성초등학교 국제교류 게시판의 글쓰기 URL은 다음과 같다.
 
 ```text
-https://anseong-e.goean.kr/anseong-e/na/ntt/insertNttPage.do?bbsId=3782&mi=6400
+https://anseong-e.goean.kr/anseong-e/na/ntt/insertNttPage.do?mi=6436&bbsId=3783
 ```
 
 게시판은 통합 로그인으로 이동하므로 확장 프로그램이 다음 방식으로 동작한다.

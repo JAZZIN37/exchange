@@ -45,6 +45,13 @@ class AppTest(unittest.TestCase):
         response = self.client.post("/api/translate", json={"text": ""})
         self.assertEqual(response.status_code, 400)
 
+    def test_board_registration_targets_international_exchange_board(self):
+        page = (Path(__file__).resolve().parents[1] / "static" / "index.html").read_text(encoding="utf-8")
+        self.assertIn(
+            "https://anseong-e.goean.kr/anseong-e/na/ntt/insertNttPage.do?mi=6436&bbsId=3783",
+            page,
+        )
+
 
 if __name__ == "__main__":
     unittest.main()
