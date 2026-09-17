@@ -45,17 +45,6 @@ jobs:
         if: ${{ steps.worker.outputs.configured == 'true' }}
         uses: actions/checkout@v4
 
-      - name: Store the DeepL key in Cloudflare Worker secrets
-        if: ${{ steps.worker.outputs.configured == 'true' }}
-        uses: cloudflare/wrangler-action@v4
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          workingDirectory: worker
-          command: secret put DEEPL_API_KEY
-        env:
-          DEEPL_API_KEY: ${{ secrets.DEEPL_API_KEY }}
-
       - name: Deploy Cloudflare translation Worker
         if: ${{ steps.worker.outputs.configured == 'true' }}
         uses: cloudflare/wrangler-action@v4
@@ -64,3 +53,5 @@ jobs:
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           workingDirectory: worker
           command: deploy
+          secrets: |
+            DEEPL_API_KEY

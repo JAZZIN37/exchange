@@ -52,6 +52,11 @@ class AppTest(unittest.TestCase):
             page,
         )
 
+    def test_worker_deploy_passes_deepl_key_as_wrangler_action_secret(self):
+        workflow = (Path(__file__).resolve().parents[1] / ".github" / "workflows" / "deploy-cloudflare-worker.yml").read_text(encoding="utf-8")
+        self.assertIn("secrets: |\n            DEEPL_API_KEY", workflow)
+        self.assertNotIn("command: secret put DEEPL_API_KEY", workflow)
+
 
 if __name__ == "__main__":
     unittest.main()
