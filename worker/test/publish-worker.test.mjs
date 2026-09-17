@@ -78,3 +78,14 @@ test('rejects a publish request without the partner access code before contactin
   assert.equal(response.status, 403);
   assert.equal((await response.json()).ok, false);
 });
+
+test('health exposes only publisher configuration readiness, never secret values', async () => {
+  const worker = createTranslationWorker();
+  const response = await worker.fetch(new Request('https://worker.example/api/health'), env);
+  const data = await response.json();
+
+  assert.equal(response.status, 200);
+  assert.equal(data.publisher_configured, true);
+  assert.equal(data.submission_access_configured, true);
+  assert.equal(JSON.stringify(data).includes('publisher-password'), false);
+});

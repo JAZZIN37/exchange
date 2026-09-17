@@ -184,7 +184,15 @@ export function createTranslationWorker({ fetchFn = fetch, now = Date.now } = {}
       if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers });
       const url = new URL(request.url);
       if (url.pathname === '/api/health' && request.method === 'GET') {
-        return jsonResponse({ ok: true, service: 'nz-exchange-news-translate', provider: 'DeepL', deepl_configured: Boolean(String(env.DEEPL_API_KEY || '').trim()), api_base: String(env.DEEPL_API_BASE_URL || 'https://api-free.deepl.com') }, 200, headers);
+        return jsonResponse({
+          ok: true,
+          service: 'nz-exchange-news-translate',
+          provider: 'DeepL',
+          deepl_configured: Boolean(String(env.DEEPL_API_KEY || '').trim()),
+          publisher_configured: Boolean(String(env.SCHOOL_BOARD_USERNAME || '').trim() && String(env.SCHOOL_BOARD_PASSWORD || '').trim()),
+          submission_access_configured: Boolean(String(env.SUBMISSION_ACCESS_CODE || '').trim()),
+          api_base: String(env.DEEPL_API_BASE_URL || 'https://api-free.deepl.com'),
+        }, 200, headers);
       }
       if (!['/api/translate', '/api/publish'].includes(url.pathname) || request.method !== 'POST') return jsonResponse({ ok: false, error: '요청한 주소를 찾지 못했습니다.' }, 404, headers);
       if (!rateAllowed(clientId(request))) return jsonResponse({ ok: false, error: '요청이 너무 많습니다. 잠시 후 다시 시도해 주세요.' }, 429, headers);
