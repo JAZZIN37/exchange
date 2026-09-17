@@ -7,7 +7,7 @@
   "host_permissions": [
     "http://127.0.0.1:5000/*",
     "http://localhost:5000/*",
-    "https://nz-exchange-news-deepl.vercel.app/*",
+    "https://jazzin37.github.io/*",
     "https://anseong-e.goean.kr/*"
   ],
   "content_scripts": [
@@ -15,7 +15,7 @@
       "matches": [
         "http://127.0.0.1:5000/*",
         "http://localhost:5000/*",
-        "https://nz-exchange-news-deepl.vercel.app/*",
+        "https://jazzin37.github.io/*",
         "https://anseong-e.goean.kr/*"
       ],
       "js": ["content.js"],

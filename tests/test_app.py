@@ -1,6 +1,7 @@
 import os
 import sys
 import unittest
+import json
 from pathlib import Path
 
 os.environ["MOCK_TRANSLATION"] = "1"
@@ -56,6 +57,13 @@ class AppTest(unittest.TestCase):
         workflow = (Path(__file__).resolve().parents[1] / ".github" / "workflows" / "deploy-cloudflare-worker.yml").read_text(encoding="utf-8")
         self.assertIn("secrets: |\n            DEEPL_API_KEY", workflow)
         self.assertNotIn("command: secret put DEEPL_API_KEY", workflow)
+
+    def test_board_autofill_extension_runs_on_github_pages(self):
+        manifest_path = Path(__file__).resolve().parents[1] / "board-autofill-extension" / "manifest.json"
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        github_pages = "https://jazzin37.github.io/*"
+        self.assertIn(github_pages, manifest["host_permissions"])
+        self.assertIn(github_pages, manifest["content_scripts"][0]["matches"])
 
 
 if __name__ == "__main__":
