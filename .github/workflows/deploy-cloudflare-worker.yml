@@ -81,6 +81,7 @@ jobs:
           python - <<'PY'
           import json
           import os
+          from urllib.error import HTTPError
           from urllib.request import Request, urlopen
 
           payload = {
@@ -96,8 +97,14 @@ jobs:
               headers={"Content-Type": "application/json", "Origin": "https://jazzin37.github.io"},
               method="POST",
           )
-          with urlopen(request, timeout=90) as response:
-              result = json.loads(response.read().decode("utf-8"))
+          try:
+              with urlopen(request, timeout=90) as response:
+                  result = json.loads(response.read().decode("utf-8"))
+          except HTTPError as error:
+              try:
+                  result = json.loads(error.read().decode("utf-8"))
+              except Exception:
+                  raise SystemExit(f"Worker returned HTTP {error.code}")
           if not result.get("ok"):
               raise SystemExit(result.get("error", "test publication failed"))
           print("Test post published. Board post ID:", result.get("boardPostId", "unknown"))
