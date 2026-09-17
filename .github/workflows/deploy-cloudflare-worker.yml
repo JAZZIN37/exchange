@@ -78,6 +78,7 @@ jobs:
         env:
           WORKER_ORIGIN: https://nz-exchange-news-translate.jazzin-kim.workers.dev
         run: |
+          sleep 20
           python - <<'PY'
           import json
           import os
