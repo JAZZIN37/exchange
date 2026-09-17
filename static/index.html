@@ -95,8 +95,9 @@
   <section id="publishModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="publishTitle">
     <div class="modal-card">
       <h2 id="publishTitle">국제교류 게시판에 게시</h2>
-      <p>게시 내용을 확인한 뒤 참여자 접근코드를 입력해 주세요. 게시 계정 비밀번호는 이 화면에 입력하거나 저장하지 않습니다.</p>
-      <input id="publishAccessCode" type="password" autocomplete="one-time-code" placeholder="참여자 접근코드">
+      <p>아이디와 비밀번호는 이번 게시 요청에만 사용되며 저장하지 않습니다.<br>Введите имя пользователя и пароль только для этой публикации. Данные не сохраняются.<br>Enter your username and password only for this publication. They are not stored.</p>
+      <label>아이디 · Идентификатор · Username</label><input id="publishUsername" type="text" autocomplete="username" placeholder="아이디 · Идентификатор · Username">
+      <label>비밀번호 · Пароль · Password</label><input id="publishPassword" type="password" autocomplete="current-password" placeholder="비밀번호 · Пароль · Password">
       <label><input id="publishConfirmed" type="checkbox"> 제목·본문을 확인했고 국제교류 게시판에 즉시 게시하는 것에 동의합니다.</label>
       <div class="modal-actions"><button class="btn" id="cancelPublishBtn" type="button">취소</button><button class="btn" id="confirmPublishBtn" type="button">확인 후 즉시 게시</button></div>
     </div>
@@ -225,22 +226,23 @@
     return payload;
   }
 
-  function closePublishModal() { $('publishModal').classList.remove('open'); $('publishAccessCode').value=''; $('publishConfirmed').checked=false; }
+  function closePublishModal() { $('publishModal').classList.remove('open'); $('publishUsername').value=''; $('publishPassword').value=''; $('publishConfirmed').checked=false; }
   $('prepareBtn').addEventListener('click', () => {
     const payload = getPayload();
     if (!payload.body) return status('게시할 본문을 먼저 입력해줘.', 'error');
     $('publishModal').classList.add('open');
-    $('publishAccessCode').focus();
+    $('publishUsername').focus();
   });
   $('cancelPublishBtn').addEventListener('click', closePublishModal);
   $('confirmPublishBtn').addEventListener('click', async () => {
     const payload = getPayload();
-    const accessCode = $('publishAccessCode').value;
-    if (!accessCode) return status('참여자 접근코드를 입력해줘.', 'error');
+    const username = $('publishUsername').value.trim();
+    const password = $('publishPassword').value;
+    if (!username || !password) return status('아이디와 비밀번호를 입력해줘. / Введите идентификатор и пароль. / Enter username and password.', 'error');
     if (!$('publishConfirmed').checked) return status('게시 내용 확인에 동의해줘.', 'error');
     $('confirmPublishBtn').disabled = true;
     try {
-      const result = await api('/api/publish', {method:'POST', body:JSON.stringify({accessCode, title:payload.title, body:payload.body, translatedBody:payload.translatedBody, confirmed:true})});
+      const result = await api('/api/publish', {method:'POST', body:JSON.stringify({credentials:{username,password}, title:payload.title, body:payload.body, translatedBody:payload.translatedBody, confirmed:true})});
       closePublishModal();
       status(`국제교류 게시판에 게시했어. 게시번호: ${result.boardPostId || '확인 중'}`, 'ok');
     } catch (error) { status(error.message, 'error'); }

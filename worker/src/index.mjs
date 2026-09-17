@@ -129,9 +129,9 @@ export function createTranslationWorker({ fetchFn = fetch, now = Date.now } = {}
   }
 
   async function publishToSchoolBoard(payload, env) {
-    const username = String(env.SCHOOL_BOARD_USERNAME || '').trim();
-    const password = String(env.SCHOOL_BOARD_PASSWORD || '').trim();
-    if (!username || !password) throw new Error('학교 게시 계정 설정이 아직 완료되지 않았습니다.');
+    const username = String(payload.credentials?.username || '').trim();
+    const password = String(payload.credentials?.password || '');
+    if (!username || !password) throw new Error('학교 홈페이지 아이디와 비밀번호를 입력해 주세요.');
     const cookies = [];
     const requestToSchool = async (path, init = {}) => {
       const headers = new Headers(init.headers || {});
@@ -200,9 +200,7 @@ export function createTranslationWorker({ fetchFn = fetch, now = Date.now } = {}
       try { body = await request.json(); } catch { return jsonResponse({ ok: false, error: 'JSON 요청 본문이 필요합니다.' }, 400, headers); }
 
       if (url.pathname === '/api/publish') {
-        const accessCode = typeof body?.accessCode === 'string' ? body.accessCode : '';
-        const expectedCode = String(env.SUBMISSION_ACCESS_CODE || '');
-        if (!expectedCode || accessCode !== expectedCode) return jsonResponse({ ok: false, error: '게시 접근코드가 올바르지 않습니다.' }, 403, headers);
+        const credentials = body?.credentials && typeof body.credentials === 'object' ? body.credentials : {};
         const title = typeof body?.title === 'string' ? body.title.trim() : '';
         const publishBody = typeof body?.body === 'string' ? body.body.trim() : '';
         const translatedBody = typeof body?.translatedBody === 'string' ? body.translatedBody.trim() : '';
@@ -210,7 +208,7 @@ export function createTranslationWorker({ fetchFn = fetch, now = Date.now } = {}
         if (!title || !publishBody) return jsonResponse({ ok: false, error: '게시할 제목과 본문을 입력해 주세요.' }, 400, headers);
         if (title.length > 200 || publishBody.length > MAX_TEXT || translatedBody.length > MAX_TEXT) return jsonResponse({ ok: false, error: '게시할 글이 허용 길이를 초과했습니다.' }, 400, headers);
         try {
-          const boardPostId = await publishToSchoolBoard({ title, body: publishBody, translatedBody }, env);
+          const boardPostId = await publishToSchoolBoard({ title, body: publishBody, translatedBody, credentials }, env);
           return jsonResponse({ ok: true, boardPostId }, 200, headers);
         } catch (error) {
           return jsonResponse({ ok: false, error: error instanceof Error ? error.message : '게시 등록에 실패했습니다.' }, 502, headers);

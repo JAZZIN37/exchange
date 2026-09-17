@@ -53,7 +53,7 @@ test('publishes a confirmed partner submission through the authorized board acco
   });
 
   const response = await worker.fetch(publishRequest({
-    accessCode: 'partner-code',
+    credentials: { username: 'publisher-user', password: 'publisher-password' },
     title: '국제교류 소식',
     body: '한국어 본문',
     translatedBody: 'English body',
@@ -69,13 +69,13 @@ test('publishes a confirmed partner submission through the authorized board acco
   assert.match(String(calls[3].init.body), /nttCn=/);
 });
 
-test('rejects a publish request without the partner access code before contacting the school site', async () => {
+test('rejects a publish request without school credentials before contacting the school site', async () => {
   const worker = createTranslationWorker({ fetchFn: async () => assert.fail('school site must not be called') });
   const response = await worker.fetch(publishRequest({
-    accessCode: 'wrong-code', title: '제목', body: '본문', confirmed: true,
+    title: '제목', body: '본문', confirmed: true,
   }), env);
 
-  assert.equal(response.status, 403);
+  assert.equal(response.status, 502);
   assert.equal((await response.json()).ok, false);
 });
 

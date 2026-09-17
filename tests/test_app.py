@@ -70,10 +70,14 @@ class AppTest(unittest.TestCase):
         self.assertIn(github_pages, manifest["host_permissions"])
         self.assertIn(github_pages, manifest["content_scripts"][0]["matches"])
 
-    def test_page_has_confirmed_access_code_publish_flow(self):
+    def test_page_has_transient_trilingual_school_login_publish_flow(self):
         page = (Path(__file__).resolve().parents[1] / "static" / "index.html").read_text(encoding="utf-8")
-        self.assertIn('id="publishAccessCode"', page)
+        self.assertIn('id="publishUsername"', page)
+        self.assertIn('id="publishPassword"', page)
         self.assertIn('id="publishConfirmed"', page)
+        self.assertIn("아이디", page)
+        self.assertIn("Идентификатор", page)
+        self.assertIn("Username", page)
         self.assertIn("api('/api/publish'", page)
 
 
