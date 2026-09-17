@@ -5,7 +5,7 @@
 이 앱은 두 개의 영구 서비스로 구성된다.
 
 - 화면: GitHub Pages (`https://jazzin37.github.io/exchange/`)
-- 번역 API: Cloudflare Worker (DeepL API 키를 서버 측 Worker secret으로 보관)
+- 번역·이미지 게시 API: Cloudflare Worker (DeepL API 키는 서버 secret, 게시 계정은 요청에만 사용)
 
 GitHub Pages는 정적 HTML/CSS/JavaScript만 제공한다. 따라서 DeepL API 키를 GitHub Pages 코드에 넣으면 공개되어 사용할 수 없게 된다. 번역 요청은 GitHub Pages에서 Cloudflare Worker의 `/api/translate`로 보내고, Worker만 DeepL에 연결한다.
 
@@ -72,11 +72,13 @@ https://nz-exchange-news-translate.<Cloudflare-subdomain>.workers.dev/api/health
 
 Worker health 응답의 `deepl_configured`가 `true`이면 DeepL 키가 Cloudflare Worker에 안전하게 등록된 상태다. 키 값 자체는 응답하지 않는다.
 
-GitHub Pages 화면에서 제목 또는 본문을 입력하고 `번역`을 눌러 한국어/영어/러시아어 번역이 반환되는지 확인한다. 게시판 등록 버튼은 다음 국제교류 게시판 글쓰기 페이지를 연다.
+GitHub Pages 화면에서 제목 또는 본문을 입력하고 `번역`을 눌러 한국어/영어/러시아어 번역이 반환되는지 확인한다. `전체 이미지로 게시판 등록`은 미리보기를 생성한 뒤 최종 확인 시 전체 이미지를 학교 서버에 업로드하여 본문에 표시한다. 게시 대상은 다음 국제교류 게시판이다.
 
 ```text
 https://anseong-e.goean.kr/anseong-e/na/ntt/insertNttPage.do?mi=6436&bbsId=3783
 ```
+
+이미지 게시 전 `/api/health`의 `publish_format`이 `newspaper-images-v1`인지 프런트엔드가 확인한다. Pages만 갱신되고 Worker가 아직 이전 버전인 경우 텍스트로 대체 게시하지 않고 중단한다. CI 및 두 배포 워크플로는 `worker/test/*.test.mjs` 전체를 실행한다. 학교의 이미지 업로드 규격 변경 시 `worker/src/board-images.mjs`와 수동 시험용 `scripts/verify-image-upload.mjs`를 함께 점검한다.
 
 ## 보안 원칙
 

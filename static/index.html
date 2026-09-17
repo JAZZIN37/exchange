@@ -6,7 +6,8 @@
   <meta name="theme-color" content="#111827">
   <link rel="manifest" href="manifest.json">
   <title>안성초등학교-바이테렉 과학기술학교 국제교류</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="vendor/html2canvas-1.4.1.min.js"></script>
+  <script src="news-image.js?v=1"></script>
   <style>
     :root{--ink:#17202b;--muted:#64748b;--paper:#fffdf7;--line:#17202b;--blue:#2563eb;--soft:#eef2f7;--editable:#fff8d8}
     *{box-sizing:border-box}
@@ -45,6 +46,20 @@
     .modal{position:fixed;inset:0;z-index:20;display:none;align-items:center;justify-content:center;padding:18px;background:#0f172aaa}.modal.open{display:flex}.modal-card{width:min(100%,460px);padding:24px;border-radius:16px;background:#fff;box-shadow:0 20px 50px #0005}.modal-card h2{margin:0 0 10px;font-size:21px}.modal-card p{color:#475569;line-height:1.6}.modal-card input{width:100%;margin:10px 0;padding:12px;border:1px solid #94a3b8;border-radius:8px;font:inherit}.modal-actions{display:flex;gap:8px;margin-top:16px}.modal-actions .btn{flex:1}
     @media(max-width:850px){.app{padding:14px 9px 28px}.paper-wrap{padding:4px}.paper{padding:32px 22px 30px;min-height:auto}.masthead{font-size:29px}.partner-schools{font-size:15px;gap:7px}.title{font-size:33px;min-height:62px}.body{font-size:16px;line-height:1.8}.meta{font-size:11px}.actions{grid-template-columns:1fr}.footer{font-size:9px;letter-spacing:.04em}}
     @media print{body{background:#fff}.app{padding:0}.topbar,.action-area{display:none!important}.paper-wrap{padding:0}.paper{box-shadow:none;border:0;max-width:none}}
+    .modal-card{width:min(100%,920px);max-height:94vh;overflow:auto}.modal-card input[type=checkbox]{width:auto;margin-right:8px}
+    .publish-preview{max-height:42vh;overflow:auto;background:#e2e8f0;border:1px solid #cbd5e1;padding:8px}
+    .preview-page{margin:0 0 16px}.preview-page img{display:block;width:100%;max-width:800px;height:auto;margin:auto}
+    .publish-preview.actual-size img{width:1600px;max-width:none}.preview-page a{display:inline-block;padding:10px;color:#1d4ed8}
+    .preview-tools{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:8px}.preview-tools button{padding:8px}
+    #publishFeedback{text-align:left;font-size:15px;margin-top:12px;min-height:24px}.board-link{display:block;margin:12px 0;color:#1d4ed8}
+    .export-paper{width:800px!important;max-width:none!important;min-height:1060px!important;margin:0!important;padding:36px 40px!important;border-radius:0;box-shadow:none!important;overflow-wrap:anywhere}
+    .export-paper .masthead{font-size:32px!important;line-height:1.35}.export-paper .subtitle{font-size:20px;line-height:1.5}
+    .export-paper .meta{font-size:14px!important;margin-bottom:28px}.export-paper .title{font-size:38px!important;min-height:0!important;line-height:1.4;white-space:pre-wrap}
+    .export-paper .body{font-size:24px!important;line-height:1.75!important;min-height:0!important;text-align:left}
+    .export-paper .translation-line{font-size:22px;line-height:1.65;color:#334155;font-style:normal}.export-paper .translation-stack{margin-top:14px;gap:12px}
+    .export-paper .photo{min-height:0;border:0;background:transparent}.export-paper .photo img{max-height:600px;object-fit:contain}
+    .export-paper .photo .empty,.export-paper .image-input{display:none}.export-paper .footer{font-size:12px!important;letter-spacing:0!important}
+    .export-paper .editable{outline:none!important;background:transparent!important}.export-paper .editable:empty:before{content:none}
   </style>
 </head>
 <body>
@@ -86,7 +101,7 @@
       <div class="status" id="status" aria-live="polite"></div>
       <div class="actions">
         <button class="btn" id="translateBtn" type="button">번역<br><span lang="ru">Перевести</span></button>
-        <button class="btn" id="prepareBtn" type="button">게시판 등록 (ID/PW)<br><span lang="ru">Публикация (логин/пароль)</span></button>
+        <button class="btn" id="prepareBtn" type="button">전체 이미지로 게시판 등록<br><span lang="ru">Опубликовать изображение</span></button>
         <button class="btn" id="saveBtn" type="button">이미지로 저장<br><span lang="ru">Сохранить как изображение</span></button>
       </div>
     </section>
@@ -94,11 +109,18 @@
 
   <section id="publishModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="publishTitle">
     <div class="modal-card">
-      <h2 id="publishTitle">국제교류 게시판에 게시</h2>
+      <h2 id="publishTitle">신문 전체 이미지 확인</h2>
+      <p id="publishImageInfo">이미지를 준비하고 있습니다…</p>
+      <div class="preview-tools"><button id="previewZoomBtn" type="button">원본 크기로 보기 / Full size</button><span>아래 이미지별 PNG 저장 가능</span></div>
+      <div id="publishPreview" class="publish-preview" aria-label="게시할 신문 이미지 미리보기"></div>
+      <div id="publishFields">
       <p>아이디와 비밀번호는 이번 게시 요청에만 사용되며 저장하지 않습니다.<br>Введите имя пользователя и пароль только для этой публикации. Данные не сохраняются.<br>Enter your username and password only for this publication. They are not stored.</p>
       <label>아이디 · Идентификатор · Username</label><input id="publishUsername" type="text" autocomplete="username" placeholder="아이디 · Идентификатор · Username">
       <label>비밀번호 · Пароль · Password</label><input id="publishPassword" type="password" autocomplete="current-password" placeholder="비밀번호 · Пароль · Password">
-      <label><input id="publishConfirmed" type="checkbox"> 제목·본문을 확인했고 국제교류 게시판에 즉시 게시하는 것에 동의합니다.</label>
+      <label><input id="publishConfirmed" type="checkbox"> 전체 이미지와 글씨를 확인했고 국제교류 게시판에 즉시 게시하는 것에 동의합니다. / I have checked the images and agree to publish.</label>
+      </div>
+      <p id="publishFeedback" class="status" role="status" aria-live="polite"></p>
+      <a class="board-link" href="https://anseong-e.goean.kr/anseong-e/na/ntt/selectNttList.do?mi=6436&amp;bbsId=3783" target="_blank" rel="noopener noreferrer">국제교류 게시판 확인 / Open board</a>
       <div class="modal-actions"><button class="btn" id="cancelPublishBtn" type="button">취소</button><button class="btn" id="confirmPublishBtn" type="button">확인 후 즉시 게시</button></div>
     </div>
   </section>
@@ -226,40 +248,85 @@
     return payload;
   }
 
-  function closePublishModal() { $('publishModal').classList.remove('open'); $('publishUsername').value=''; $('publishPassword').value=''; $('publishConfirmed').checked=false; }
-  $('prepareBtn').addEventListener('click', () => {
-    const payload = getPayload();
-    if (!payload.body) return status('게시할 본문을 먼저 입력해줘.', 'error');
-    $('publishModal').classList.add('open');
-    $('publishUsername').focus();
-  });
-  $('cancelPublishBtn').addEventListener('click', closePublishModal);
-  $('confirmPublishBtn').addEventListener('click', async () => {
-    const payload = getPayload();
-    const username = $('publishUsername').value.trim();
-    const password = $('publishPassword').value;
-    if (!username || !password) return status('아이디와 비밀번호를 입력해줘. / Введите идентификатор и пароль. / Enter username and password.', 'error');
-    if (!$('publishConfirmed').checked) return status('게시 내용 확인에 동의해줘.', 'error');
-    $('confirmPublishBtn').disabled = true;
+  let preparedPublication = null;
+  let imagePreparing = false;
+  let publishInFlight = false;
+  function publishFeedback(message,kind='') {
+    $('publishFeedback').textContent=message;
+    $('publishFeedback').className=`status ${kind}`;
+  }
+  function clearCredentials() {
+    $('publishUsername').value=''; $('publishPassword').value=''; $('publishConfirmed').checked=false;
+  }
+  function closePublishModal() {
+    if(publishInFlight || imagePreparing)return;
+    $('publishModal').classList.remove('open');clearCredentials();preparedPublication=null;
+    $('publishPreview').replaceChildren();$('prepareBtn').focus();
+  }
+  async function prepareImages(forPublish) {
+    if(imagePreparing || publishInFlight)return;
+    const payload=getPayload();
+    if(!payload.body)return status('본문을 먼저 입력해 주세요. / Please enter the article.','error');
+    if(forPublish && (payload.title.length>200 || payload.body.length>8000 || payload.translatedBody.length>8000))return status('제목은 200자, 본문과 번역문은 각각 8,000자 이내로 나누어 주세요.','error');
+    imagePreparing=true;preparedPublication=null;clearCredentials();publishFeedback('전체 신문을 고해상도 이미지로 변환 중…');
+    $('publishModal').classList.add('open');$('publishFields').hidden=!forPublish;$('confirmPublishBtn').hidden=!forPublish;
+    $('confirmPublishBtn').disabled=true;$('cancelPublishBtn').disabled=true;
+    $('publishPreview').replaceChildren();$('publishPreview').classList.remove('actual-size');
+    $('previewZoomBtn').textContent='원본 크기로 보기 / Full size';$('publishImageInfo').textContent='제목·사진·번역·본문·하단을 빠짐없이 변환합니다.';
+    for(const id of ['prepareBtn','saveBtn','translateBtn'])$(id).disabled=true;
+    const editables=[...$('newspaper').querySelectorAll('[contenteditable]')];
+    for(const el of editables)el.setAttribute('contenteditable','false');
     try {
-      const result = await api('/api/publish', {method:'POST', body:JSON.stringify({credentials:{username,password}, title:payload.title, body:payload.body, translatedBody:payload.translatedBody, confirmed:true})});
-      closePublishModal();
-      status(`국제교류 게시판에 게시했어. 게시번호: ${result.boardPostId || '확인 중'}`, 'ok');
-    } catch (error) { status(error.message, 'error'); }
-    finally { $('confirmPublishBtn').disabled = false; }
+      const exported=await NewsImage.render($('newspaper'));
+      preparedPublication={title:payload.title,body:payload.body,translatedBody:payload.translatedBody,publishFormat:'newspaper-images-v1',newsImages:exported.images};
+      const filename=payload.title.replace(/[\\/:*?"<>|]/g,'_').slice(0,80)||'exchange-news';
+      exported.images.forEach((image,i)=>{
+        const figure=document.createElement('figure');figure.className='preview-page';
+        const img=document.createElement('img');img.src=image.dataUrl;img.alt=`신문 전체 이미지 ${i+1}/${exported.images.length}`;
+        const download=document.createElement('a');download.href=image.dataUrl;download.download=`${filename}-${String(i+1).padStart(2,'0')}.png`;
+        download.textContent=`PNG 저장 / Download ${i+1} (${image.width} × ${image.height})`;
+        figure.append(img,download);$('publishPreview').append(figure);
+      });
+      $('publishImageInfo').textContent=`가로 1,600px · 2배 해상도 PNG · ${exported.images.length}장 · ${(exported.totalBytes/1024/1024).toFixed(2)}MB. 긴 글은 글씨를 줄이지 않고 세로로 나누어 이어 붙입니다.`;
+      publishFeedback(forPublish?'이미지를 확인한 뒤 로그인 정보를 입력하고 게시해 주세요. / Check images before publishing.':'각 이미지 아래의 PNG 저장 링크를 눌러 원본을 저장하세요.','ok');
+      $('confirmPublishBtn').disabled=false;
+    } catch(error) {
+      preparedPublication=null;publishFeedback(`이미지 생성 실패: ${error.message} 텍스트만 대신 게시하지 않습니다.`,'error');
+    } finally {
+      imagePreparing=false;$('cancelPublishBtn').disabled=false;
+      for(const id of ['prepareBtn','saveBtn','translateBtn'])$(id).disabled=false;
+      for(const el of editables)el.setAttribute('contenteditable','true');
+    }
+  }
+  $('prepareBtn').addEventListener('click',()=>prepareImages(true));
+  $('saveBtn').addEventListener('click',()=>prepareImages(false));
+  $('previewZoomBtn').addEventListener('click',()=>{
+    const zoomed=$('publishPreview').classList.toggle('actual-size');
+    $('previewZoomBtn').textContent=zoomed?'화면에 맞추기 / Fit to width':'원본 크기로 보기 / Full size';
   });
-
-  $('saveBtn').addEventListener('click', async () => {
+  $('cancelPublishBtn').addEventListener('click',closePublishModal);
+  $('confirmPublishBtn').addEventListener('click',async()=>{
+    if(publishInFlight || imagePreparing || !preparedPublication)return;
+    const username=$('publishUsername').value.trim();
+    const password=$('publishPassword').value;
+    if(!username || !password)return publishFeedback('아이디와 비밀번호를 입력해 주세요. / Введите идентификатор и пароль. / Enter username and password.','error');
+    if(!$('publishConfirmed').checked)return publishFeedback('이미지 확인 및 게시에 동의해 주세요. / Please confirm publication.','error');
+    publishInFlight=true;$('confirmPublishBtn').disabled=true;$('cancelPublishBtn').disabled=true;
+    publishFeedback('이미지 업로드 및 게시 중입니다. 창을 닫거나 다시 누르지 마세요. / Uploading images…');
     try {
-      if (!window.html2canvas) return window.print();
-      const canvas = await html2canvas($('newspaper'), {scale:2, backgroundColor:'#fffdf7', useCORS:true});
-      const link = document.createElement('a');
-      link.download = `${(textOf($('previewTitle')) || 'international-education-news').replace(/[\\/:*?"<>|]/g,'_')}.png`;
-      link.href = canvas.toDataURL('image/png');
-      link.click();
-      status('신문 이미지를 저장했어.', 'ok');
-    } catch (error) {
-      status(`이미지 저장 실패: ${error.message}`, 'error');
+      const health=await api('/api/health');
+      if(health.publish_format!=='newspaper-images-v1')throw new Error('이미지 게시 서버가 아직 준비되지 않았습니다. 잠시 후 새로고침해 주세요.');
+      const result=await api('/api/publish',{method:'POST',body:JSON.stringify({...preparedPublication,credentials:{username,password},confirmed:true})});
+      preparedPublication=null;
+      const message=result.verified
+        ? `이미지 ${result.imageCount}장을 게시하고 저장된 본문까지 확인했습니다. 게시번호: ${result.boardPostId}`
+        : '학교에서 등록 응답을 받았습니다. 게시판 확인 링크에서 이미지가 보이는지 확인해 주세요. 중복 등록하지 마세요. / Please verify the post on the board before retrying.';
+      publishFeedback(message,result.verified?'ok':'');status(message,result.verified?'ok':'');
+    } catch(error) {
+      publishFeedback(`${error.message} 등록 요청이 전달되었을 수 있으므로 재시도 전에 게시판을 확인해 주세요.`,'error');
+    } finally {
+      clearCredentials();publishInFlight=false;$('cancelPublishBtn').disabled=false;
+      $('confirmPublishBtn').disabled=!preparedPublication;
     }
   });
 </script>

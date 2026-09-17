@@ -36,7 +36,7 @@ jobs:
         run: python -m unittest discover -s tests -v
 
       - name: Run translation Worker tests
-        run: node --test worker/test/translate-worker.test.mjs
+        run: node --test worker/test/*.test.mjs
 
       - name: Build static site
         env:

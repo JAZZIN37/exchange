@@ -1,3 +1,5 @@
+import { IMAGE_FORMAT, decodeNewsImages, uploadNewsImages, imageBoardHtml } from './board-images.mjs';
+
 const MAX_TEXT = 8000;
 const RATE_LIMIT_PER_MINUTE = 20;
 const RATE_WINDOW_MS = 60_000;
@@ -39,7 +41,7 @@ function corsHeaders(request, env) {
 function jsonResponse(payload, status, headers) {
   return new Response(JSON.stringify(payload), {
     status,
-    headers: { 'Content-Type': 'application/json; charset=utf-8', ...headers },
+    headers: { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store', ...headers },
   });
 }
 
@@ -95,6 +97,22 @@ function clientId(request) {
   return request.headers.get('CF-Connecting-IP') || request.headers.get('X-Forwarded-For')?.split(',')[0].trim() || 'unknown';
 }
 
+async function boundedJson(request, limit) {
+  if (Number(request.headers.get('Content-Length')) > limit) throw new RangeError('Request too large');
+  const reader=request.body?.getReader();
+  if (!reader) throw new SyntaxError('Missing body');
+  let bytes=0,text='';const decoder=new TextDecoder();
+  try {
+    while (true) {
+      const {value,done}=await reader.read();if(done)break;
+      bytes+=value.length;
+      if(bytes>limit) {await reader.cancel();throw new RangeError('Request too large');}
+      text+=decoder.decode(value,{stream:true});
+    }
+    return JSON.parse(text+decoder.decode());
+  } finally {reader.releaseLock();}
+}
+
 export function createTranslationWorker({ fetchFn = fetch, now = Date.now } = {}) {
   const requests = new Map();
 
@@ -136,7 +154,9 @@ export function createTranslationWorker({ fetchFn = fetch, now = Date.now } = {}
     const requestToSchool = async (path, init = {}) => {
       const headers = new Headers(init.headers || {});
       if (cookies.length) headers.set('Cookie', cookies.join('; '));
-      const response = await fetchFn(`${SCHOOL_ORIGIN}${path}`, { ...init, headers, redirect: 'manual' });
+      headers.set('Referer', `${SCHOOL_ORIGIN}/${SCHOOL_SYS_ID}/na/ntt/insertNttPage.do?mi=${BOARD_MI}&bbsId=${BOARD_ID}`);
+      if (init.method === 'POST') headers.set('Origin', SCHOOL_ORIGIN);
+      const response = await fetchFn(`${SCHOOL_ORIGIN}${path}`, { ...init, headers, redirect: 'manual', signal: AbortSignal.timeout(30000) });
       appendCookies(cookies, response);
       return response;
     };
@@ -156,12 +176,13 @@ export function createTranslationWorker({ fetchFn = fetch, now = Date.now } = {}
     const writeResponse = await requestToSchool(`/${SCHOOL_SYS_ID}/na/ntt/insertNttPage.do?mi=${BOARD_MI}&bbsId=${BOARD_ID}`);
     const writeHtml = await writeResponse.text();
     if (!writeHtml.includes('nttInsForm')) throw new Error('학교 계정에 국제교류 게시판 글쓰기 권한이 없거나 글쓰기 화면을 열 수 없습니다.');
+    const imageUrls = payload.newsImages ? await uploadNewsImages(payload.newsImages, requestToSchool) : [];
     const form = hiddenFields(writeHtml);
     form.set('sysId', SCHOOL_SYS_ID);
     form.set('mi', BOARD_MI);
     form.set('bbsId', BOARD_ID);
     form.set('nttSj', payload.title);
-    form.set('nttCn', boardHtml(payload.body, payload.translatedBody));
+    form.set('nttCn', imageUrls.length ? imageBoardHtml(imageUrls, payload.title) : boardHtml(payload.body, payload.translatedBody));
     form.set('secretAt', 'N');
     form.set('koglType', '0');
     form.set('filekinfo', '');
@@ -175,7 +196,18 @@ export function createTranslationWorker({ fetchFn = fetch, now = Date.now } = {}
       if (result.resultAt === 'P') throw new Error(`금칙어로 게시할 수 없습니다: ${String(result.prhibtWrd || '').slice(0, 120)}`);
       throw new Error('학교 홈페이지 게시 등록에 실패했습니다.');
     }
-    return String(result.nttSn || '');
+    const boardPostId = String(result.nttSn || '');
+    if (!imageUrls.length) return {boardPostId};
+    let verified = false;
+    if (/^\d+$/.test(boardPostId)) {
+      try {
+        const saved = await requestToSchool(`/${SCHOOL_SYS_ID}/na/ntt/selectNttInfo.do?mi=${BOARD_MI}&bbsId=${BOARD_ID}&nttSn=${boardPostId}`);
+        const savedHtml = await saved.text();
+        const sources = (savedHtml.match(/<img\b[^>]*>/gi) || []).map(tag=>getAttribute(tag,'src'));
+        verified = saved.ok && imageUrls.every(url=>sources.includes(url) || sources.includes(new URL(url).pathname));
+      } catch { /* Accepted by school, but read-back failed: do not repeat the submission. */ }
+    }
+    return {boardPostId, imageCount:imageUrls.length, verified};
   }
 
   return {
@@ -188,6 +220,7 @@ export function createTranslationWorker({ fetchFn = fetch, now = Date.now } = {}
           ok: true,
           service: 'nz-exchange-news-translate',
           provider: 'DeepL',
+          publish_format: IMAGE_FORMAT,
           deepl_configured: Boolean(String(env.DEEPL_API_KEY || '').trim()),
           publisher_configured: Boolean(String(env.SCHOOL_BOARD_USERNAME || '').trim() && String(env.SCHOOL_BOARD_PASSWORD || '').trim()),
           submission_access_configured: Boolean(String(env.SUBMISSION_ACCESS_CODE || '').trim()),
@@ -197,19 +230,27 @@ export function createTranslationWorker({ fetchFn = fetch, now = Date.now } = {}
       if (!['/api/translate', '/api/publish'].includes(url.pathname) || request.method !== 'POST') return jsonResponse({ ok: false, error: '요청한 주소를 찾지 못했습니다.' }, 404, headers);
       if (!rateAllowed(clientId(request))) return jsonResponse({ ok: false, error: '요청이 너무 많습니다. 잠시 후 다시 시도해 주세요.' }, 429, headers);
       let body;
-      try { body = await request.json(); } catch { return jsonResponse({ ok: false, error: 'JSON 요청 본문이 필요합니다.' }, 400, headers); }
+      try { body = await boundedJson(request,url.pathname === '/api/publish' ? 15*1024*1024 : 100*1024); }
+      catch (error) { return jsonResponse({ ok: false, error: error instanceof RangeError ? '요청 용량이 너무 큽니다. 이미지를 줄이거나 글을 나누어 주세요.' : 'JSON 요청 본문이 필요합니다.' }, error instanceof RangeError ? 413 : 400, headers); }
 
       if (url.pathname === '/api/publish') {
         const credentials = body?.credentials && typeof body.credentials === 'object' ? body.credentials : {};
         const title = typeof body?.title === 'string' ? body.title.trim() : '';
         const publishBody = typeof body?.body === 'string' ? body.body.trim() : '';
         const translatedBody = typeof body?.translatedBody === 'string' ? body.translatedBody.trim() : '';
-        if (!body?.confirmed) return jsonResponse({ ok: false, error: '게시 내용을 확인한 뒤 최종 확인을 선택해 주세요.' }, 400, headers);
+        if (body?.confirmed !== true) return jsonResponse({ ok: false, error: '게시 내용을 확인한 뒤 최종 확인을 선택해 주세요.' }, 400, headers);
         if (!title || !publishBody) return jsonResponse({ ok: false, error: '게시할 제목과 본문을 입력해 주세요.' }, 400, headers);
         if (title.length > 200 || publishBody.length > MAX_TEXT || translatedBody.length > MAX_TEXT) return jsonResponse({ ok: false, error: '게시할 글이 허용 길이를 초과했습니다.' }, 400, headers);
+        let newsImages;
+        if (body.publishFormat !== undefined || body.newsImages !== undefined) {
+          try {
+            if (body.publishFormat !== IMAGE_FORMAT) throw new Error('지원하지 않는 게시 이미지 형식입니다. 새로고침해 주세요.');
+            newsImages = decodeNewsImages(body.newsImages);
+          } catch (error) { return jsonResponse({ok:false,error:error.message},400,headers); }
+        }
         try {
-          const boardPostId = await publishToSchoolBoard({ title, body: publishBody, translatedBody, credentials }, env);
-          return jsonResponse({ ok: true, boardPostId }, 200, headers);
+          const result = await publishToSchoolBoard({ title, body: publishBody, translatedBody, credentials, newsImages }, env);
+          return jsonResponse({ ok: true, ...result }, 200, headers);
         } catch (error) {
           return jsonResponse({ ok: false, error: error instanceof Error ? error.message : '게시 등록에 실패했습니다.' }, 502, headers);
         }

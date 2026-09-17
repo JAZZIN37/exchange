@@ -36,7 +36,7 @@ jobs:
         run: node --check board-autofill-extension/content.js
 
       - name: Run Cloudflare translation Worker tests
-        run: node --test worker/test/translate-worker.test.mjs
+        run: node --test worker/test/*.test.mjs
 
       - name: Check JSON manifests
         run: |

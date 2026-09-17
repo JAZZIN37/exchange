@@ -1,6 +1,12 @@
 name: Diagnose school login without posting
 on:
   workflow_dispatch:
+    inputs:
+      image_upload_probe:
+        description: "Upload one labelled synthetic PNG and verify dimensions; NEVER create a board post"
+        type: boolean
+        required: false
+        default: false
 permissions:
   contents: read
 jobs:
@@ -18,3 +24,9 @@ jobs:
           SCHOOL_BOARD_PASSWORD: ${{ secrets.SCHOOL_BOARD_PASSWORD }}
         run: |
           python scripts/inspect-board-images.py
+      - name: Verify one synthetic image upload without creating a post
+        if: ${{ inputs.image_upload_probe == true }}
+        env:
+          SCHOOL_BOARD_USERNAME: ${{ secrets.SCHOOL_BOARD_USERNAME }}
+          SCHOOL_BOARD_PASSWORD: ${{ secrets.SCHOOL_BOARD_PASSWORD }}
+        run: node scripts/verify-image-upload.mjs
