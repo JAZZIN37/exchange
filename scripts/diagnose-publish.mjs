@@ -27,6 +27,7 @@ const worker = createTranslationWorker({ fetchFn: async (url, init = {}) => {
       const data = JSON.parse(text);
       entry.result = Object.fromEntries(['result', 'agreCnt', 'cpmCnt', 'xssChk'].filter(k => k in data).map(k => [k, data[k]]));
       entry.returnPath = data.returnUrl ? new URL(data.returnUrl, school).pathname : null;
+      entry.returnOrigin = data.returnUrl ? new URL(data.returnUrl, school).origin : null;
     } catch { entry.json = false; }
   }
   if (u.pathname.endsWith('/insertNttPage.do')) {
