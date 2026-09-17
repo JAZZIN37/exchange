@@ -1,100 +1,87 @@
-# GitHub Actions → Vercel 배포 안내
+# GitHub Pages + Cloudflare Worker 배포 안내
 
-이 앱은 정적 HTML만으로 동작하지 않는다. DeepL API 키를 브라우저에 노출하지 않기 위해 Flask 서버가 `/api/translate`를 제공한다.
+## 배포 구조
 
-## GitHub Push로 Vercel 배포(권장)
+이 앱은 두 개의 영구 서비스로 구성된다.
 
-저장소 루트의 `vercel.json`과 `api/index.py`가 Flask 앱을 Vercel Python Function으로 연결한다.
+- 화면: GitHub Pages (`https://jazzin37.github.io/exchange/`)
+- 번역 API: Cloudflare Worker (DeepL API 키를 서버 측 Worker secret으로 보관)
 
-`main` 브랜치 Push 뒤 GitHub Actions가 테스트를 통과한 경우 Vercel 프로덕션 배포를 수행하도록 `.github/workflows/deploy-vercel.yml`을 추가했다.
+GitHub Pages는 정적 HTML/CSS/JavaScript만 제공한다. 따라서 DeepL API 키를 GitHub Pages 코드에 넣으면 공개되어 사용할 수 없게 된다. 번역 요청은 GitHub Pages에서 Cloudflare Worker의 `/api/translate`로 보내고, Worker만 DeepL에 연결한다.
 
-최초 1회에만 Vercel 프로젝트를 만들고 GitHub 저장소의 Actions secrets를 설정한다. 실제 비밀값은 GitHub 저장소 파일·대화·브라우저 코드에 넣지 않는다.
+코드 변경은 `main` 브랜치 Push로 배포한다.
 
-1. Vercel에서 GitHub 저장소 `JAZZIN37/exchange`를 Import한다. Framework Preset은 Other로 두고, `vercel.json`을 그대로 사용한다.
-2. Vercel Project Settings → Environment Variables에 다음을 등록한다.
+1. GitHub Actions가 Python/JavaScript/Worker 테스트를 실행한다.
+2. `Deploy site to GitHub Pages`가 정적 화면을 영구 Pages URL로 배포한다.
+3. `Deploy translation Worker`가 Cloudflare Worker 코드를 배포하고 DeepL 키를 Worker secret으로 갱신한다.
 
-```bash
-DEEPL_API_KEY=<DeepL에서 발급한 실제 키>
-DEEPL_API_BASE_URL=https://api-free.deepl.com
-ALLOWED_ORIGINS=
-```
+## 최초 1회 설정
 
-3. Vercel → Account Settings → Tokens에서 배포 토큰을 만들고, GitHub 저장소 Settings → Secrets and variables → Actions에 다음 세 가지 secret을 등록한다.
+### 1. GitHub Pages 활성화
 
-```text
-VERCEL_TOKEN=<Vercel 배포 토큰>
-VERCEL_ORG_ID=<Vercel 조직 또는 개인 계정 ID>
-VERCEL_PROJECT_ID=<Vercel 프로젝트 ID>
-```
+GitHub 저장소 `JAZZIN37/exchange`에서 다음을 설정한다.
 
-`VERCEL_ORG_ID`와 `VERCEL_PROJECT_ID`는 Vercel 프로젝트를 `vercel link`한 뒤 생성되는 `.vercel/project.json`에서 확인할 수 있으며, 이 파일과 토큰은 GitHub에 커밋하지 않는다.
+1. Settings → Pages
+2. Build and deployment → Source에서 `GitHub Actions` 선택
+3. `main`에 Push하거나 Actions 탭에서 `Deploy site to GitHub Pages` workflow를 실행
 
-이후 `main`으로 Push하면 `CI`와 `Deploy to Vercel` workflow가 실행된다. 배포 workflow는 테스트 실패 시 중단되며, 위 세 secret이 등록되기 전에는 배포 job을 안전하게 건너뛴다.
-
-`DEEPL_API_KEY`는 채팅, GitHub 파일, 브라우저 코드에 넣지 않는다. Vercel 환경변수에 직접 입력한다. Pro 계정이면 `DEEPL_API_BASE_URL`을 `https://api.deepl.com`으로 바꾼다.
-
-## 테스트 주소
-
-Vercel CLI의 임시 배포 주소는 GitHub Actions와 독립적으로 생성할 수 있다. 임시 주소에서는 화면과 게시판 대상 URL을 확인할 수 있지만, DeepL 환경변수가 없으면 실제 번역은 동작하지 않는다.
-
-```bash
-npx vercel deploy --temporary --yes
-```
-
-## 배포 URL 확인
+완료 후 기본 영구 주소는 다음이다.
 
 ```text
-https://<프로젝트>.vercel.app/
-https://<프로젝트>.vercel.app/api/health
+https://jazzin37.github.io/exchange/
 ```
 
-`/api/health`가 HTTP 200이고 `deepl_configured: true`를 반환하면 서버 환경변수가 준비된 상태다. 키 값 자체는 응답에 포함되지 않는다.
+### 2. Cloudflare Worker 연결
 
-배포 workflow가 끝난 뒤 Vercel의 Production Deployment 로그와 위 두 URL을 모두 확인한다. `/api/health`가 HTTP 200이고 `deepl_configured: true`를 반환하면 서버 환경변수까지 준비된 상태다.
+Cloudflare 계정에서 API token을 만든다. 토큰은 Worker 편집 권한으로 이 프로젝트의 계정으로만 범위를 제한한다.
 
-## Render 대체 배포
-
-Vercel 인증 또는 Python Function 사용이 어려운 경우에는 기존 `render.yaml`을 이용해 Render Web Service로 배포할 수 있다.
-
-## 배포 순서
-
-1. 프로젝트 폴더를 GitHub 저장소에 Push한다.
-2. Render에서 **New > Blueprint**를 선택하고 저장소를 연결한다.
-3. `render.yaml`을 적용한다.
-4. Render 환경변수에 다음 값을 등록한다.
+GitHub 저장소 Settings → Secrets and variables → Actions에 다음 secrets를 등록한다.
 
 ```text
-DEEPL_API_KEY=<DeepL에서 발급한 실제 키>
-DEEPL_API_BASE_URL=https://api-free.deepl.com
-ALLOWED_ORIGINS=
+CLOUDFLARE_API_TOKEN=<Cloudflare Worker 배포 토큰>
+CLOUDFLARE_ACCOUNT_ID=<Cloudflare 계정 ID>
+DEEPL_API_KEY=<DeepL API 키>
 ```
 
-DeepL Pro 계정이면 `DEEPL_API_BASE_URL`을 `https://api.deepl.com`으로 바꾼다.
+`DEEPL_API_KEY`는 GitHub Actions가 Cloudflare Worker secret으로 전송한다. 소스 코드, GitHub Pages, 브라우저, 로그에는 넣지 않는다.
 
-5. 배포 후 다음 주소가 모두 정상인지 확인한다.
+이후 `main`에 Push하면 `Deploy translation Worker`가 `nz-exchange-news-translate` Worker를 배포한다. Cloudflare가 반환한 Workers.dev 주소는 아래 형식이다.
 
 ```text
-https://<서비스주소>.onrender.com/api/health
-https://<서비스주소>.onrender.com/
+https://nz-exchange-news-translate.<Cloudflare-subdomain>.workers.dev
 ```
 
-`/api/health` 응답에 `deepl_configured: true`가 표시되어야 한다. API 키 자체는 응답에 포함되지 않는다.
+### 3. GitHub Pages에 Worker 주소 연결
 
-## GitHub Actions
+GitHub 저장소 Settings → Secrets and variables → Actions → Variables에 다음 공개 변수를 등록한다.
 
-`.github/workflows/ci.yml`은 Push와 Pull Request마다 다음을 검사한다.
+```text
+TRANSLATION_API_BASE=https://nz-exchange-news-translate.<Cloudflare-subdomain>.workers.dev
+```
 
-- DeepL 키 없이 목업 번역 테스트
-- Python 컴파일
-- 확장 프로그램 JavaScript 문법
-- 두 manifest JSON
-- 소스에 실제 DeepL 키가 들어갔는지 여부
+이 값은 비밀이 아니며 HTTPS origin만 허용한다. 설정 후 `Deploy site to GitHub Pages` workflow를 다시 실행하거나 빈 커밋을 Push한다.
 
-`.github/workflows/deploy-vercel.yml`은 main Push 및 수동 실행에서 같은 테스트를 다시 수행한 뒤, Vercel Actions secrets가 등록된 경우에만 프로덕션으로 배포한다.
+## 운영 확인
 
-## 보안 주의
+다음 주소를 차례대로 확인한다.
 
-- 실제 키를 GitHub 파일, README, `.env.example`, 브라우저 코드에 넣지 않는다.
-- Render의 Environment Variables에만 실제 키를 저장한다.
-- 키가 커밋되었다면 즉시 DeepL 콘솔에서 폐기·재발급하고 GitHub 기록에서도 제거한다.
-- GitHub Pages를 별도 프런트엔드로 사용할 때만 `ALLOWED_ORIGINS`에 정확한 Pages 주소를 등록한다.
+```text
+https://jazzin37.github.io/exchange/
+https://nz-exchange-news-translate.<Cloudflare-subdomain>.workers.dev/api/health
+```
+
+Worker health 응답의 `deepl_configured`가 `true`이면 DeepL 키가 Cloudflare Worker에 안전하게 등록된 상태다. 키 값 자체는 응답하지 않는다.
+
+GitHub Pages 화면에서 제목 또는 본문을 입력하고 `번역`을 눌러 한국어/영어/러시아어 번역이 반환되는지 확인한다. 게시판 등록 버튼은 다음 국제교류 게시판 글쓰기 페이지를 연다.
+
+```text
+https://anseong-e.goean.kr/anseong-e/na/ntt/insertNttPage.do?mi=6436&bbsId=3783
+```
+
+## 보안 원칙
+
+- DeepL 키, Cloudflare API token, 계정 ID는 채팅·코드·README·브라우저에 입력하지 않는다.
+- 실제 값은 GitHub Actions secrets에서만 사용한다.
+- `TRANSLATION_API_BASE`만 GitHub Actions variable로 공개한다.
+- Worker는 `https://jazzin37.github.io` Origin에만 CORS 헤더를 발급한다.
+- Cloudflare API token은 Worker 편집 권한과 대상 계정으로 최소 범위로 제한한다.

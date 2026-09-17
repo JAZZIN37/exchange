@@ -1,0 +1,8 @@
+name = "nz-exchange-news-translate"
+main = "src/index.mjs"
+compatibility_date = "2025-09-01"
+workers_dev = true
+
+[vars]
+DEEPL_API_BASE_URL = "https://api-free.deepl.com"
+ALLOWED_ORIGINS = "https://jazzin37.github.io"

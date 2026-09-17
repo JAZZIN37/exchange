@@ -6,4 +6,6 @@ __pycache__/
 .venv/
 .pytest_cache/
 .vercel/
+.wrangler/
+_site/
 .DS_Store
