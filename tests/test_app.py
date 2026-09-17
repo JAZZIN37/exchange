@@ -58,6 +58,11 @@ class AppTest(unittest.TestCase):
         self.assertIn("secrets: |\n            DEEPL_API_KEY", workflow)
         self.assertNotIn("command: secret put DEEPL_API_KEY", workflow)
 
+    def test_worker_deploy_keeps_public_post_test_manual_only(self):
+        workflow = (Path(__file__).resolve().parents[1] / ".github" / "workflows" / "deploy-cloudflare-worker.yml").read_text(encoding="utf-8")
+        self.assertIn("publish_test:", workflow)
+        self.assertIn("inputs.publish_test == true", workflow)
+
     def test_board_autofill_extension_runs_on_github_pages(self):
         manifest_path = Path(__file__).resolve().parents[1] / "board-autofill-extension" / "manifest.json"
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))

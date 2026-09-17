@@ -4,6 +4,12 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+    inputs:
+      publish_test:
+        description: "Create one clearly labelled public integration-test post"
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -61,3 +67,33 @@ jobs:
             SCHOOL_BOARD_USERNAME
             SCHOOL_BOARD_PASSWORD
             SUBMISSION_ACCESS_CODE
+
+      - name: Publish a controlled integration-test post
+        if: ${{ inputs.publish_test == true && steps.worker.outputs.configured == 'true' }}
+        env:
+          WORKER_ORIGIN: https://nz-exchange-news-translate.jazzin-kim.workers.dev
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          from urllib.request import Request, urlopen
+
+          payload = {
+              "accessCode": os.environ["SUBMISSION_ACCESS_CODE"],
+              "title": "[자동게시 기능 점검] 국제교류 게시 테스트",
+              "body": "이 글은 국제교류 프로그램의 자동게시 기능을 점검하기 위해 등록한 테스트 게시물입니다.",
+              "translatedBody": "This is a test post created to verify the international-exchange automatic publishing feature.",
+              "confirmed": True,
+          }
+          request = Request(
+              os.environ["WORKER_ORIGIN"] + "/api/publish",
+              data=json.dumps(payload, ensure_ascii=False).encode("utf-8"),
+              headers={"Content-Type": "application/json", "Origin": "https://jazzin37.github.io"},
+              method="POST",
+          )
+          with urlopen(request, timeout=90) as response:
+              result = json.loads(response.read().decode("utf-8"))
+          if not result.get("ok"):
+              raise SystemExit(result.get("error", "test publication failed"))
+          print("Test post published. Board post ID:", result.get("boardPostId", "unknown"))
+          PY
