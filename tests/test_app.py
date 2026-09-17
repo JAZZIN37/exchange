@@ -53,10 +53,10 @@ class AppTest(unittest.TestCase):
             page,
         )
 
-    def test_worker_deploy_passes_deepl_key_as_wrangler_action_secret(self):
+    def test_worker_deploy_uploads_publisher_secrets_with_wrangler(self):
         workflow = (Path(__file__).resolve().parents[1] / ".github" / "workflows" / "deploy-cloudflare-worker.yml").read_text(encoding="utf-8")
-        self.assertIn("secrets: |\n            DEEPL_API_KEY", workflow)
-        self.assertNotIn("command: secret put DEEPL_API_KEY", workflow)
+        self.assertIn("wrangler secret bulk .worker-secrets.json", workflow)
+        self.assertIn("npm install --global wrangler@4", workflow)
 
     def test_worker_deploy_keeps_public_post_test_manual_only(self):
         workflow = (Path(__file__).resolve().parents[1] / ".github" / "workflows" / "deploy-cloudflare-worker.yml").read_text(encoding="utf-8")

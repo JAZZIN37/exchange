@@ -54,19 +54,24 @@ jobs:
         if: ${{ steps.worker.outputs.configured == 'true' }}
         uses: actions/checkout@v4
 
-      - name: Deploy Cloudflare translation Worker
+      - name: Install Wrangler
         if: ${{ steps.worker.outputs.configured == 'true' }}
-        uses: cloudflare/wrangler-action@v4
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          workingDirectory: worker
-          command: deploy
-          secrets: |
-            DEEPL_API_KEY
-            SCHOOL_BOARD_USERNAME
-            SCHOOL_BOARD_PASSWORD
-            SUBMISSION_ACCESS_CODE
+        run: npm install --global wrangler@4
+
+      - name: Upload Worker secrets and deploy
+        if: ${{ steps.worker.outputs.configured == 'true' }}
+        working-directory: worker
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+          names = ["DEEPL_API_KEY", "SCHOOL_BOARD_USERNAME", "SCHOOL_BOARD_PASSWORD", "SUBMISSION_ACCESS_CODE"]
+          Path(".worker-secrets.json").write_text(json.dumps({name: os.environ[name] for name in names}), encoding="utf-8")
+          PY
+          wrangler secret bulk .worker-secrets.json
+          rm -f .worker-secrets.json
+          wrangler deploy
 
       - name: Publish a controlled integration-test post
         if: ${{ inputs.publish_test == true && steps.worker.outputs.configured == 'true' }}
